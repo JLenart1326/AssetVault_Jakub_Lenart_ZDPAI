@@ -25,6 +25,19 @@ CREATE TABLE asset_images (
     image_path VARCHAR(255) NOT NULL
 );
 
+-- Tabela typów assetów
+CREATE TABLE IF NOT EXISTS Asset_Types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- ASSET TYPES
+INSERT INTO Asset_Types (name) VALUES 
+    ('Model3D'),
+    ('Texture'),
+    ('Audio')
+
+    
 -- Tabela dla ról
 CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
@@ -36,14 +49,3 @@ CREATE TABLE roles (
 INSERT INTO roles (name) VALUES
 ('admin'),
 ('user');
-
-
-CREATE TABLE IF NOT EXISTS Asset_Types (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
-
-INSERT INTO Asset_Types (name) VALUES 
-    ('Model3D'),
-    ('Texture'),
-    ('Audio')
