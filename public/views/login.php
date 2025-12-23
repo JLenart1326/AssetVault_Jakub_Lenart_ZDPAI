@@ -1,9 +1,12 @@
 <?php
+// Uruchamiamy sesję, jeśli jeszcze nie działa – musimy wiedzieć, czy ktoś jest już zalogowany
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+// Dołączamy klasę User, żeby móc sprawdzić dane logowania w bazie
 require_once __DIR__ . '/../classes/User.php';
 
+// Jeśli użytkownik jest już zalogowany, nie ma sensu pokazywać mu logowania – wysyłamy go do panelu
 if (isset($_SESSION['user_id'])) {
     header('Location: /dashboard');
     exit();
@@ -12,27 +15,34 @@ if (isset($_SESSION['user_id'])) {
 $message = '';
 $messageType = '';
 
+// Sprawdzamy, czy wracamy tu po udanej rejestracji (parametr ?registered=1 w URL)
 if (isset($_GET['registered']) && $_GET['registered'] == 1) {
     $message = 'Registration completed successfully. You can now log in.';
     $messageType = 'success';
 }
 
+// Obsługa wysłania formularza logowania
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
+    // Upewniamy się, że wpisano email i hasło
     if (!empty($email) && !empty($password)) {
         $userObj = new User();
+        // Próbujemy zalogować użytkownika (sprawdzamy w bazie czy email i hasło pasują)
         $user = $userObj->login($email, $password);
 
         if ($user) {
+            // Sukces! Zapisujemy dane użytkownika w sesji przeglądarki
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
+            // Przekierowujemy do głównego panelu
             header('Location: /dashboard');
             exit();
         } else {
+            // Błędne dane logowania
             $message = 'Invalid email or password.';
             $messageType = 'error';
         }
@@ -54,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <div class="auth-wrapper">
-
     <div class="auth-left">
         <img src="/images/logo-white.png" alt="AssetVault Logo" style="width: 80px; margin-bottom: 20px;">
         <h1>Welcome to AssetVault</h1>
@@ -78,8 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST">
                 <label for="email">Email address</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                
                 <button type="submit">Sign in</button>
             </form>
 
