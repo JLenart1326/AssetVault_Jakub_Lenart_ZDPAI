@@ -241,30 +241,6 @@ Każdy widok jest osobnym plikiem PHP w folderze `views/`:
 
 ---
 
-## Przykładowe dane
-
-Przykładowe wypełnienie bazy (użytkownicy, assety, miniatury) znajduje się na screenach i w przesłanym SQL-u.
-
-**Użytkownicy:**
-
-* `admin` (rola: admin)
-* `Oliwia Zając` (rola: admin)
-* ...
-* `Paweł`, `Michał`, `Krzysiek` (rola: user)
-
-**Assety:**
-
-* `Test` (Tekstura)
-* `Doll2` (Model 3D)
-* `Dragon 3D Model 4` (Tekstura)
-* `Anime Doll` (Model 3D)
-* `Water` (Tekstura)
-
-**Miniatury assetów**:
-Powiązane z assetami przez `asset_images`.
-
----
-
 ## Zarządzanie assetami
 
 * **Dodawanie:** Użytkownik może przesłać asset oraz do 3 miniaturek podglądu.
