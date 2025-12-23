@@ -1,5 +1,5 @@
 <?php
-require_once('../auth.php');
+require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../classes/Asset.php';
 
 $typeFilter = $_GET['type'] ?? 'All';
@@ -14,20 +14,20 @@ $assets = $assetService->findAllWithImages();
 <head>
     <meta charset="UTF-8">
     <title>Assets - AssetVault</title>
-    <link rel="stylesheet" href="../styles/assets.css">
-    <link rel="stylesheet" href="../styles/asset_list.css">
+    <link rel="stylesheet" href="/styles/assets.css">
+    <link rel="stylesheet" href="/styles/asset_list.css">
 </head>
 <body>
 
 <header class="assets-header">
     <div class="assets-header-left">
-        <img src="../images/logo-black.png" alt="AssetVault Logo" class="logo-icon">
+        <img src="/images/logo-black.png" alt="AssetVault Logo" class="logo-icon">
         <div class="logo">AssetVault</div>
     </div>
     <div class="assets-header-right">
-        <a href="upload.php?from=assets" class="upload-button"><img src="../images/upload-icon.png" class="upload-icon">Upload</a>
-        <a href="dashboard.php?from=assets">
-            <img src="../images/user.png" alt="User Icon" class="user-icon">
+        <a href="/upload?from=assets" class="upload-button"><img src="/images/upload-icon.png" class="upload-icon">Upload</a>
+        <a href="/dashboard?from=assets">
+            <img src="/images/user.png" alt="User Icon" class="user-icon">
         </a>
     </div>
 </header>
@@ -44,7 +44,7 @@ $assets = $assetService->findAllWithImages();
         <?php $source = 'assets'; ?>
         <?php foreach ($assets as $asset): ?>
             <?php if ($typeFilter === 'All' || $asset['type'] === $typeFilter): ?>
-                <?php include('partials/asset_list.php'); ?>
+                <?php include __DIR__ . '/partials/asset_list.php'; ?>
             <?php endif; ?>
         <?php endforeach; ?>
     </div>
