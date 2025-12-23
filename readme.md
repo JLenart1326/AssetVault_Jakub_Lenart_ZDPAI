@@ -208,6 +208,13 @@ Upewnij się, że katalogi `public/uploads` oraz `public/images` mają nadane od
 | id      | SERIAL PRIMARY KEY | Unikalny identyfikator roli  |
 | name    | VARCHAR(50)        | Nazwa roli (`admin`, `user`) |
 
+### Tabela `asset_types`
+
+| Kolumna | Typ                | Opis                         |
+| ------- | ------------------ | ---------------------------- |
+| id      | SERIAL PRIMARY KEY | Unikalny identyfikator typu |
+| name    | VARCHAR(50)        | Nazwa typu (`Model3D`, `Texture`, `Audio`) |
+
 ---
 
 ## Uprawnienia i role
