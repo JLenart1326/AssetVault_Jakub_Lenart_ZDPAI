@@ -1,5 +1,5 @@
 <?php
-require_once('../auth.php');
+require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../classes/Asset.php';
 
@@ -7,19 +7,19 @@ $errors = [];
 $msg = '';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: assets.php");
+    header("Location: /assets");
     exit();
 }
 $assetId = (int)$_GET['id'];
 
 $returnTo = (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) ? $_GET['from'] : 'assets';
-$returnUrl = "asset.php?id={$assetId}&from=" . htmlspecialchars($returnTo);
+$returnUrl = "/asset?id={$assetId}&from=" . htmlspecialchars($returnTo);
 
 $assetService = new Asset();
 $asset = $assetService->getById($assetId);
 
 if (!$asset) {
-    header("Location: {$returnTo}.php");
+    header("Location: /{$returnTo}");
     exit();
 }
 
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Edit Asset - AssetVault</title>
-    <link rel="stylesheet" href="../styles/upload_edit.css">
+    <link rel="stylesheet" href="/styles/upload_edit.css">
 </head>
 <body>
 
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="button-row">
             <button type="submit" class="upload-main-btn">Save Changes</button>
-            <a href="asset.php?id=<?= $assetId ?>&from=<?= htmlspecialchars($returnTo) ?>" class="cancel-upload-btn">Cancel Changes</a>
+            <a href="/asset?id=<?= $assetId ?>&from=<?= htmlspecialchars($returnTo) ?>" class="cancel-upload-btn">Cancel Changes</a>
         </div>
     </form>
 </div>
