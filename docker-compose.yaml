@@ -20,6 +20,7 @@ services:
       POSTGRES_USER: assetuser
       POSTGRES_PASSWORD: assetpass
       POSTGRES_DB: assetvault
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:

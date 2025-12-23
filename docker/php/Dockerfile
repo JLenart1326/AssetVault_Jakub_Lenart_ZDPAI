@@ -32,3 +32,12 @@ RUN apk add --no-cache --virtual .run-deps $RUN_DEPS
 RUN echo 'memory_limit = -1' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini;
 RUN echo 'upload_max_filesize = 1024M' >> /usr/local/etc/php/conf.d/docker-php-upload.ini; \
     echo 'post_max_size = 1024M' >> /usr/local/etc/php/conf.d/docker-php-post.ini;
+
+
+RUN apk add --no-cache \
+    git \
+    unzip \
+    zip
+
+# Instalacja Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
