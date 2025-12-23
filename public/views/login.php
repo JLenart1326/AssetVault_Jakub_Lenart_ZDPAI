@@ -1,9 +1,11 @@
 <?php
-session_start();
-require_once('../classes/User.php');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . '/../classes/User.php';
 
 if (isset($_SESSION['user_id'])) {
-    header('Location: dashboard.php');
+    header('Location: /dashboard');
     exit();
 }
 
@@ -28,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
-            header('Location: dashboard.php');
+            header('Location: /dashboard');
             exit();
         } else {
             $message = 'Invalid email or password.';
@@ -47,21 +49,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Login - AssetVault</title>
-    <link rel="stylesheet" href="../styles/auth.css">
+    <link rel="stylesheet" href="/styles/auth.css">
 </head>
 <body>
 
 <div class="auth-wrapper">
 
     <div class="auth-left">
-        <img src="../images/logo-white.png" alt="AssetVault Logo" style="width: 80px; margin-bottom: 20px;">
+        <img src="/images/logo-white.png" alt="AssetVault Logo" style="width: 80px; margin-bottom: 20px;">
         <h1>Welcome to AssetVault</h1>
         <p>Manage your digital assets securely and efficiently with our platform.</p>
     </div>
 
     <div class="auth-right">
         <div class="logo-section">
-            <img src="../images/logo-black.png" alt="Logo">
+            <img src="/images/logo-black.png" alt="Logo">
             <h1>AssetVault</h1>
         </div>
 
@@ -82,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <div class="auth-footer">
-                <p>Don't have an account? <a href="register.php">Sign up</a></p>
+                <p>Don't have an account? <a href="/register">Sign up</a></p>
             </div>
         </div>
     </div>
