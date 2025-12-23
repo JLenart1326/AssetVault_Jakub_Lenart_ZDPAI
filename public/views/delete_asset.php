@@ -1,9 +1,9 @@
 <?php
-require_once('../auth.php');
-require_once('../classes/Asset.php');
+require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../classes/Asset.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['id'])) {
-    header("Location: assets.php");
+    header("Location: /assets");
     exit();
 }
 
@@ -20,24 +20,24 @@ $assetObj = new Asset();
 $asset = $assetObj->getById($assetId);
 
 if (!$asset) {
-    header("Location: {$returnTo}.php");
+    header("Location: /{$returnTo}");
     exit();
 }
 
 if ($isAdmin || $asset['user_id'] == $userId) {
-    if (!empty($asset['file_path']) && file_exists('../' . $asset['file_path'])) {
-        @unlink('../' . $asset['file_path']);
+    if (!empty($asset['file_path']) && file_exists(__DIR__ . '/../' . $asset['file_path'])) {
+        @unlink(__DIR__ . '/../' . $asset['file_path']);
     }
     if (!empty($asset['images'])) {
         foreach ($asset['images'] as $img) {
-            if (!empty($img['image_path']) && file_exists('../' . $img['image_path'])) {
-                @unlink('../' . $img['image_path']);
+            if (!empty($img['image_path']) && file_exists(__DIR__ . '/../' . $img['image_path'])) {
+                @unlink(__DIR__ . '/../' . $img['image_path']);
             }
         }
     }
     $assetObj->delete($assetId, $userId, $isAdmin);
 }
 
-header("Location: {$returnTo}.php");
+header("Location: /{$returnTo}");
 exit();
 ?>
