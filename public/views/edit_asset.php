@@ -1,4 +1,5 @@
 <?php
+// Dołączamy wymagane pliki: autoryzację, config i klasę Asset
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../classes/Asset.php';
@@ -6,18 +7,22 @@ require_once __DIR__ . '/../classes/Asset.php';
 $errors = [];
 $msg = '';
 
+// Sprawdzamy, czy podano ID assetu do edycji. Jak nie, to wyrzucamy do listy assetów.
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: /assets");
     exit();
 }
 $assetId = (int)$_GET['id'];
 
+// Ustalamy, skąd użytkownik przyszedł (dashboard czy assets), żeby wiedzieć gdzie go cofnąć po edycji
 $returnTo = (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) ? $_GET['from'] : 'assets';
 $returnUrl = "/asset?id={$assetId}&from=" . htmlspecialchars($returnTo);
 
+// Pobieramy dane assetu z bazy
 $assetService = new Asset();
 $asset = $assetService->getById($assetId);
 
+// Jeśli taki asset nie istnieje, to wracamy do poprzedniej strony
 if (!$asset) {
     header("Location: /{$returnTo}");
     exit();
@@ -27,24 +32,29 @@ $userId = $_SESSION['user_id'];
 $isAdmin = ($_SESSION['role'] === 'admin');
 $isOwner = ($asset['user_id'] == $userId);
 
+// Zabezpieczenie: Edytować może tylko właściciel pliku albo administrator
 if (!$isAdmin && !$isOwner) {
     header("Location: {$returnUrl}");
     exit();
 }
 
-
-
+// Obsługa zapisu zmian (gdy kliknięto przycisk Save Changes)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    
+    // Jeśli nie zmieniamy typu pliku, to zostaje stary typ z bazy
     $type = trim($_POST['type'] ?? $asset['type']);
 
+    // Sprawdzamy czy użytkownik chce podmienić główny plik assetu
     $updateMain = !empty($_POST['update_main']);
     $mainFile = $updateMain ? ($_FILES['asset_file'] ?? null) : null;
     
+    // Sprawdzamy czy użytkownik chce podmienić obrazki podglądowe (showcase)
     $updateShowcase = !empty($_POST['update_screenshots']);
     $thumbnails = $updateShowcase ? ($_FILES['new_showcase_files'] ?? null) : null;
     
+    // Próbujemy zaktualizować dane w bazie i ew. podmienić pliki na dysku
     list($success, $errorArr) = $assetService->updateWithFiles(
         $assetId,
         $name,
@@ -59,9 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($success) {
+        // Udało się - wracamy do widoku szczegółów assetu
         header("Location: {$returnUrl}");
         exit();
     } else {
+        // Coś poszło nie tak - wyświetlimy listę błędów
         $errors = $errorArr;
     }
 }
@@ -90,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data" class="upload-form">
+        
         <div class="checkbox-wrapper">
             <label for="updateMainAsset">Update Main Asset</label>
             <input type="checkbox" id="updateMainAsset" name="update_main">
@@ -149,21 +162,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     const newShowcaseFiles = document.getElementById('newShowcaseFiles');
     const showcaseFilesList = document.getElementById('showcaseFilesList');
 
+    // Pokazywanie/ukrywanie pola wgrywania miniaturek po kliknięciu checkboxa
     updateShowcaseCheckbox.addEventListener('change', () => {
         if (updateShowcaseCheckbox.checked) {
             updateShowcaseFields.style.display = 'block';
         } else {
             updateShowcaseFields.style.display = 'none';
+            // Czyścimy wybrane pliki, jeśli użytkownik się rozmyślił
             newShowcaseFiles.value = '';
             showcaseFilesList.innerText = '';
         }
     });
 
+    // Wyświetlanie listy wybranych plików (miniaturek)
     newShowcaseFiles.addEventListener('change', () => {
         showcaseFilesList.innerHTML = '';
         const files = Array.from(newShowcaseFiles.files);
         files.forEach(file => {
             const ext = "." + file.name.split('.').pop().toLowerCase();
+            // Pozwalamy tylko na obrazki
             if ([".jpg", ".jpeg", ".png"].includes(ext)) {
                 const item = document.createElement('div');
                 item.textContent = file.name;
@@ -176,6 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     });
 
+    // Funkcja pomocnicza zwracająca dozwolone rozszerzenia dla wybranego typu assetu
     function getAcceptedExtensions() {
         const selectedType = typeSelect.value;
         if (selectedType === "Model 3D") {
@@ -188,13 +206,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         return [];
     }
 
+     // Pokazywanie/ukrywanie pola wgrywania głównego pliku
      updateMainAssetCheckbox.addEventListener('change', function() {
         const isChecked = this.checked;
         if (isChecked) {
+            // Jeśli wymieniamy plik, odblokowujemy zmianę typu assetu
             typeSelect.disabled = false;
             updateMainAssetFields.style.display = 'block';
             updateNewMainAssetAccept();
         } else {
+            // Jeśli nie wymieniamy pliku, blokujemy zmianę typu i przywracamy oryginalny typ
             typeSelect.disabled = true;
             typeSelect.value = typeSelect.dataset.originalType;
             updateMainAssetFields.style.display = 'none';
@@ -203,6 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     });
     
+    // Walidacja wybranego głównego pliku (czy pasuje do typu)
     newMainAssetFile.addEventListener('change', () => {
         const file = newMainAssetFile.files[0];
         if (file) {
@@ -220,6 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     });
 
+    // Jeśli zmieniamy typ assetu, musimy zaktualizować filtr dozwolonych plików w przeglądarce
     typeSelect.addEventListener('change', () => {
         if (updateMainAssetCheckbox.checked) {
             updateNewMainAssetAccept();
