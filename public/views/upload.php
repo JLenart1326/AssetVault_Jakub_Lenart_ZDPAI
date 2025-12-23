@@ -1,7 +1,8 @@
 <?php
-require_once('../auth.php');
-require_once('../config.php');
-require_once('../classes/Asset.php');
+// Używamy __DIR__, aby PHP szukało plików względem folderu 'views', a nie 'index.php'
+require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../classes/Asset.php';
 
 $msg = "";
 $errors = [];
@@ -21,7 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     list($success, $errorArr) = $assetObj->uploadWithThumbnails($userId, $name, $description, $type, $file, $thumbnails);
 
     if ($success) {
-        header('Location: ' . ($fromPage === 'assets' ? 'assets.php' : 'dashboard.php'));
+        // Zmiana przekierowania na routing Slim
+        header('Location: ' . ($fromPage === 'assets' ? '/assets' : '/dashboard'));
         exit();
     } else {
         $errors = $errorArr;
@@ -34,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Upload Asset - AssetVault</title>
-    <link rel="stylesheet" href="../styles/upload_edit.css">
+    <link rel="stylesheet" href="/styles/upload_edit.css">
 </head>
 <body>
 <div class="upload-wrapper">
@@ -92,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="button-row">
             <button type="submit" class="upload-main-btn">Upload Asset</button>
-            <a href="<?= ($fromPage === 'assets' ? 'assets.php' : 'dashboard.php') ?>" class="cancel-upload-btn">Cancel Upload</a>
+            <a href="<?= ($fromPage === 'assets' ? '/assets' : '/dashboard') ?>" class="cancel-upload-btn">Cancel Upload</a>
         </div>
     </form>
 </div>
