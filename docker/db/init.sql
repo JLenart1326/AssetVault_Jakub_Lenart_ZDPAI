@@ -31,7 +31,19 @@ CREATE TABLE roles (
     name VARCHAR(50)
 );
 
+
 -- ROLES
 INSERT INTO roles (name) VALUES
 ('admin'),
 ('user');
+
+
+CREATE TABLE IF NOT EXISTS Asset_Types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO Asset_Types (name) VALUES 
+    ('Model3D'),
+    ('Texture'),
+    ('Audio')
