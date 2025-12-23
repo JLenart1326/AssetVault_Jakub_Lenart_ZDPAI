@@ -1,10 +1,12 @@
 <?php
-require_once('../classes/User.php');
-session_start();
+require_once __DIR__ . '/../classes/User.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $user = new User();
 $user->logout();
 
-header('Location: login.php');
+header('Location: /login');
 exit();
 ?>
