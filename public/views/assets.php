@@ -1,13 +1,15 @@
 <?php
+// Dołączamy autoryzację (sprawdzamy czy ktoś jest zalogowany) i klasę Asset
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../classes/Asset.php';
 
+// Sprawdzamy, czy w adresie URL jest parametr ?type=... (np. Audio, Texture).
+// Jeśli nie ma, domyślnie pokazujemy "All" (Wszystkie).
 $typeFilter = $_GET['type'] ?? 'All';
 
+// Pobieramy wszystkie dostępne assety z bazy danych
 $assetService = new Asset();
-
 $assets = $assetService->findAllWithImages();
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,10 +43,14 @@ $assets = $assetService->findAllWithImages();
     </div>
 
     <div class="assets-grid">
-        <?php $source = 'assets'; ?>
+        <?php $source = 'assets'; // Informacja dla kafelka, że jesteśmy na stronie głównej assetów ?>
+        
         <?php foreach ($assets as $asset): ?>
+            
             <?php if ($typeFilter === 'All' || $asset['type'] === $typeFilter): ?>
+                
                 <?php include __DIR__ . '/partials/asset_list.php'; ?>
+            
             <?php endif; ?>
         <?php endforeach; ?>
     </div>
