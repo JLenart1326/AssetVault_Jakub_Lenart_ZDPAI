@@ -1,5 +1,5 @@
-<?php
-require_once 'Database.php';
+\<?php
+require_once __DIR__ . '/Database.php';
 
 class User
 {
@@ -104,5 +104,4 @@ class User
             );
         }
     }
-
 }
