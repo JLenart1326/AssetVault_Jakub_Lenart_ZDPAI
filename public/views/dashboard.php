@@ -4,7 +4,9 @@ require_once __DIR__ . '/../classes/Database.php';
 require_once __DIR__ . '/../classes/User.php';
 require_once __DIR__ . '/../classes/Asset.php';
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $updateMessage = '';
 $updateError = '';
@@ -72,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: /login');
     exit();
 }
 
@@ -80,7 +82,7 @@ $userService = new User();
 $user = $userService->findById($_SESSION['user_id']);
 
 if (!$user) {
-    header('Location: login.php');
+    header('Location: /login');
     exit();
 }
 
@@ -96,8 +98,8 @@ $totalFiles = count($userAssets);
 <head>
     <meta charset="UTF-8">
     <title>Dashboard - AssetVault</title>
-    <link rel="stylesheet" href="../styles/dashboard.css">
-    <link rel="stylesheet" href="../styles/asset_list.css">
+    <link rel="stylesheet" href="/styles/dashboard.css">
+    <link rel="stylesheet" href="/styles/asset_list.css">
 </head>
 <body>
 
@@ -106,14 +108,14 @@ $totalFiles = count($userAssets);
     <header class="dashboard-header">
         <div class="account-title">Account Management</div>
         <div class="dashboard-header-right">
-            <a href="assets.php" class="viewer-btn">Asset Viewer</a>
-            <a href="logout.php" class="logout-btn"><img src="../images/logout-icon.png" class="logout-icon">Logout</a>
+            <a href="/assets" class="viewer-btn">Asset Viewer</a>
+            <a href="/logout" class="logout-btn"><img src="/images/logout-icon.png" class="logout-icon">Logout</a>
         </div>
     </header>
 
     <main class="dashboard-content">
         <div class="profile-box">
-            <img src="../images/user.png" alt="User Icon" class="profile-img">
+            <img src="/images/user.png" alt="User Icon" class="profile-img">
             <h3><?= htmlspecialchars($user['username']) ?></h3>
             <p class="email"><?= htmlspecialchars($user['email']) ?></p>
         </div>
@@ -130,7 +132,7 @@ $totalFiles = count($userAssets);
             <div class="assets-grid">
                 <?php $source = 'dashboard'; ?>
                 <?php foreach ($userAssets as $asset): ?>
-                    <?php include('partials/asset_list.php'); ?>
+                    <?php include __DIR__ . '/partials/asset_list.php'; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -148,7 +150,7 @@ $totalFiles = count($userAssets);
                 <form method="POST">
                     <div class="form-field">
                         <label for="username">Full Name</label>
-                        <input type="text" id="username" value="<?= htmlspecialchars($user['username']) ?>" name="username" ... >
+                        <input type="text" id="username" value="<?= htmlspecialchars($user['username']) ?>" name="username" required>
                     </div>
                     <div class="form-field">
                         <label for="email">Email</label>
