@@ -1,5 +1,5 @@
 <?php
-// Używamy __DIR__, aby PHP szukało plików względem folderu 'views', a nie 'index.php'
+// Dołączamy niezbędne pliki: sprawdzanie logowania, konfiguracja i klasa obsługująca Assety
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../classes/Asset.php';
@@ -7,8 +7,10 @@ require_once __DIR__ . '/../classes/Asset.php';
 $msg = "";
 $errors = [];
 
+// Sprawdzamy skąd przyszedł użytkownik, żeby wiedzieć gdzie go cofnąć po sukcesie
 $fromPage = isset($_GET['from']) ? $_GET['from'] : 'dashboard';
 
+// Jeśli formularz został wysłany (kliknięto Upload)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -19,13 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $assetObj = new Asset();
 
+    // Próbujemy zapisać asset razem z miniaturkami
     list($success, $errorArr) = $assetObj->uploadWithThumbnails($userId, $name, $description, $type, $file, $thumbnails);
 
     if ($success) {
-        // Zmiana przekierowania na routing Slim
+        // Udało się - przekieruj na odpowiednią stronę (assets lub dashboard)
         header('Location: ' . ($fromPage === 'assets' ? '/assets' : '/dashboard'));
         exit();
     } else {
+        // Coś poszło nie tak, zapisujemy błędy do wyświetlenia
         $errors = $errorArr;
     }
 }
@@ -53,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+        
         <div class="drop-zone" id="dropZone">
             <p class="drop-zone-p">Drag and drop your file here</p>
             <p class="drop-zone-p">or</p>
@@ -107,7 +112,7 @@ const typeSelect = document.getElementById('typeSelect');
 const showcaseInput = document.getElementById('showcaseInput');
 const showcaseFilesList = document.getElementById('showcaseFilesList');
 
-// Funkcja zwracająca akceptowane rozszerzenia
+// Definiujemy jakie rozszerzenia są dozwolone dla konkretnego typu assetu
 function getAcceptedExtensions() {
     const selectedType = typeSelect.value;
     if (selectedType === "Model 3D") {
@@ -120,26 +125,26 @@ function getAcceptedExtensions() {
     return [];
 }
 
-// Aktualizacja akceptowanych typów inputa
+// Aktualizuje pole pliku, żeby przeglądarka wiedziała co użytkownik może wybrać
 function updateAcceptedExtensions() {
     const acceptList = getAcceptedExtensions().join(",");
     assetFileInput.setAttribute("accept", acceptList);
 
-    // Reset pliku i wyświetlanej nazwy
+    // Czyścimy wybrany plik przy zmianie typu, żeby uniknąć błędów
     assetFileInput.value = "";
     fileNameDisplay.innerText = "";
 }
 
 typeSelect.addEventListener('change', updateAcceptedExtensions);
 
-// Obsługa kliknięcia w strefę
+// Kliknięcie w dowolne miejsce strefy drop otwiera okno wyboru plików
 dropZone.addEventListener('click', (e) => {
     if (e.target === dropZone) {
         assetFileInput.click();
     }
 });
 
-// Obsługa drag & drop
+// Efekty wizualne: podświetlenie strefy jak przeciągasz nad nią plik
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
@@ -149,6 +154,7 @@ dropZone.addEventListener('dragleave', () => {
     dropZone.classList.remove('dragover');
 });
 
+// Obsługa wyświetlania nazw wybranych miniaturek (Showcase)
 showcaseInput.addEventListener('change', function() {
     showcaseFilesList.innerHTML = '';
     for (const file of showcaseInput.files) {
@@ -160,6 +166,7 @@ showcaseInput.addEventListener('change', function() {
     }
 });
 
+// Obsługa upuszczenia pliku (DROP)
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
@@ -171,6 +178,7 @@ dropZone.addEventListener('drop', (e) => {
         const file = files[0];
         const fileExt = "." + file.name.split('.').pop().toLowerCase();
 
+        // Sprawdzamy czy rozszerzenie pasuje do wybranego typu (np. czy to .fbx dla modelu 3D)
         if (acceptedExtensions.includes(fileExt)) {
             assetFileInput.files = files;
             fileNameDisplay.innerText = file.name;
@@ -180,18 +188,21 @@ dropZone.addEventListener('drop', (e) => {
     }
 });
 
-// Obsługa zmiany pliku
+// Aktualizacja nazwy pliku pod strefą po wybraniu go klasycznie przyciskiem
 assetFileInput.addEventListener('change', () => {
     fileNameDisplay.innerText = assetFileInput.files.length ? assetFileInput.files[0].name : '';
 });
 
+// Inicjalizacja przy załadowaniu strony
 updateAcceptedExtensions();
 
+// Walidacja formularza przed wysłaniem
 const uploadForm = document.getElementById('uploadForm');
 uploadForm.addEventListener('submit', function(e) {
     let oldError = document.getElementById('mainFileErrorMsg');
     if (oldError) oldError.remove();
 
+    // Nie pozwól wysłać formularza, jeśli nie wybrano głównego pliku
     if (!assetFileInput.files.length) {
         const msg = document.createElement('div');
         msg.id = 'mainFileErrorMsg';
