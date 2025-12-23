@@ -1,7 +1,9 @@
 <?php
+// Dołączamy wymagane klasy i autoryzację
 require_once __DIR__ . '/../auth.php';
 require_once __DIR__ . '/../classes/Asset.php';
 
+// Jeśli nie podano ID assetu, nie mamy czego wyświetlać -> przekierowanie do listy
 if (!isset($_GET['id'])) {
     header("Location: /assets");
     exit();
@@ -9,23 +11,32 @@ if (!isset($_GET['id'])) {
 
 $assetId = (int)$_GET['id'];
 
+// Pobieramy dane assetu z bazy
 $assetObj = new Asset();
 $asset = $assetObj->getById($assetId);
 
+// Jeśli asset nie istnieje (np. podano złe ID), wracamy do listy
 if (!$asset) {
     header("Location: /assets");
     exit();
 }
 
+// Sprawdzamy uprawnienia użytkownika (czy jest właścicielem lub adminem)
 $userId = $_SESSION['user_id'];
 $isAdmin = $_SESSION['role'] === 'admin';
 $isOwner = $asset['user_id'] == $userId;
 
+// Pobieramy listę obrazków (miniaturek/showcase) dla tego assetu
 $images = $asset['images'] ?? [];
 
+// Obliczamy rozmiar pliku w MB (sprawdzamy fizyczny plik na dysku)
 $fileSizeMB = is_file(__DIR__ . '/../' . $asset['file_path']) ? round(filesize(__DIR__ . '/../' . $asset['file_path']) / 1048576, 1) : 0;
+// Wyciągamy rozszerzenie pliku do wyświetlenia
 $extension = strtoupper(pathinfo($asset['file_path'], PATHINFO_EXTENSION));
+// Formatujemy datę dodania
 $createdAt = date("Y-m-d H:i", strtotime($asset['created_at']));
+
+// Ustalamy, dokąd ma prowadzić przycisk "Wstecz" (dashboard czy assets)
 $returnTo = 'assets';
 if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
     $returnTo = $_GET['from'];
@@ -91,6 +102,7 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
                 <p><strong>Created:</strong> <?= $createdAt ?></p>
                 <p><strong>Author:</strong> <?= htmlspecialchars($asset['username']) ?></p>
                 <p><strong>Description:</strong> <?= htmlspecialchars($asset['description']) ?></p>
+                
                 <?php if ($asset['type'] === 'Audio'): ?>
                 <div class="asset-audio">
                     <audio controls>
@@ -106,6 +118,7 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
         <?php if ($isOwner || $isAdmin): ?>
             <div class="asset-actions" style="display:inline;">
                 <a href="/edit_asset?id=<?= $assetId ?>&from=<?= htmlspecialchars($returnTo) ?>" class="action-btn">Edit</a>
+                
                 <form method="POST" action="/delete_asset" onsubmit="return confirm('Are you sure you want to delete this asset?');" style="display:inline;">
                     <input type="hidden" name="id" value="<?= $assetId ?>">
                     <input type="hidden" name="from" value="<?= htmlspecialchars($returnTo) ?>">
@@ -116,22 +129,27 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
         <?php endif; ?>
     </section>
 </main>
+
 <script>
+    // Prosta obsługa karuzeli zdjęć
     let currentIndex = 0;
     const images = document.querySelectorAll('.carousel-img');
 
     function showImage(index) {
+        // Ukrywamy wszystkie zdjęcia i pokazujemy tylko to o wybranym indeksie
         images.forEach((img, i) => {
             img.classList.toggle('active', i === index);
         });
     }
 
     function showNext() {
+        // Przechodzimy do następnego zdjęcia (modulo zapewnia zapętlenie)
         currentIndex = (currentIndex + 1) % images.length;
         showImage(currentIndex);
     }
 
     function showPrev() {
+        // Przechodzimy do poprzedniego (dodajemy images.length, żeby uniknąć ujemnych indeksów)
         currentIndex = (currentIndex - 1 + images.length) % images.length;
         showImage(currentIndex);
     }
