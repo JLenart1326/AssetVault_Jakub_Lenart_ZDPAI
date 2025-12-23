@@ -1,9 +1,9 @@
 <?php
-require_once('../auth.php');
-require_once('../classes/Asset.php');
+require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../classes/Asset.php';
 
 if (!isset($_GET['id'])) {
-    header("Location: assets.php");
+    header("Location: /assets");
     exit();
 }
 
@@ -13,7 +13,7 @@ $assetObj = new Asset();
 $asset = $assetObj->getById($assetId);
 
 if (!$asset) {
-    header("Location: assets.php");
+    header("Location: /assets");
     exit();
 }
 
@@ -23,7 +23,7 @@ $isOwner = $asset['user_id'] == $userId;
 
 $images = $asset['images'] ?? [];
 
-$fileSizeMB = is_file("../" . $asset['file_path']) ? round(filesize("../" . $asset['file_path']) / 1048576, 1) : 0;
+$fileSizeMB = is_file(__DIR__ . '/../' . $asset['file_path']) ? round(filesize(__DIR__ . '/../' . $asset['file_path']) / 1048576, 1) : 0;
 $extension = strtoupper(pathinfo($asset['file_path'], PATHINFO_EXTENSION));
 $createdAt = date("Y-m-d H:i", strtotime($asset['created_at']));
 $returnTo = 'assets';
@@ -31,23 +31,20 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
     $returnTo = $_GET['from'];
 }
 ?>
-
-
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($asset['name']) ?> - AssetVault</title>
-    <link rel="stylesheet" href="../styles/asset.css">
+    <link rel="stylesheet" href="/styles/asset.css">
 </head>
 <body>
 
 <header class="header">
-    <a href="<?= $returnTo ?>.php" class="back-btn">
-        <img src="../images/back-arrow.png" alt="Back" class="back-icon">
+    <a href="/<?= $returnTo ?>" class="back-btn">
+        <img src="/images/back-arrow.png" alt="Back" class="back-icon">
     </a>
-    <img src="../images/logo-black.png" alt="AssetVault Logo" class="logo-icon">
+    <img src="/images/logo-black.png" alt="AssetVault Logo" class="logo-icon">
     <div class="logo">AssetVault</div>
 </header>
 
@@ -58,7 +55,7 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
         <div class="asset-meta">
             <span>Size: <?= $fileSizeMB ?> MB</span>
         </div>
-        <a href="../<?= htmlspecialchars($asset['file_path']) ?>" class="download-btn" download>Download</a>
+        <a href="/<?= htmlspecialchars($asset['file_path']) ?>" class="download-btn" download>Download</a>
     </section>
 
     <hr class="asset-divider">
@@ -69,7 +66,7 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
         <button class="carousel-arrow left" onclick="showPrev()">←</button>
         <div class="carousel-content">
             <?php foreach ($images as $index => $img): ?>
-                <img src="../<?= htmlspecialchars($img['image_path']) ?>" class="carousel-img <?= $index === 0 ? 'active' : '' ?>">
+                <img src="/<?= htmlspecialchars($img['image_path']) ?>" class="carousel-img <?= $index === 0 ? 'active' : '' ?>">
             <?php endforeach; ?>
         </div>
         <button class="carousel-arrow right" onclick="showNext()">→</button>
@@ -78,7 +75,7 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
     <div class="carousel-wrapper">
         <button class="carousel-arrow left" disabled>←</button>
         <div class="carousel-content">
-            <img src="../images/default-thumb.png" class="carousel-img active">
+            <img src="/images/default-thumb.png" class="carousel-img active">
         </div>
         <button class="carousel-arrow right" disabled>→</button>
     </div>
@@ -97,7 +94,7 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
                 <?php if ($asset['type'] === 'Audio'): ?>
                 <div class="asset-audio">
                     <audio controls>
-                        <source src="../<?= htmlspecialchars($asset['file_path']) ?>" type="audio/<?= strtolower($extension) ?>">
+                        <source src="/<?= htmlspecialchars($asset['file_path']) ?>" type="audio/<?= strtolower($extension) ?>">
                         Your browser does not support the audio element.
                     </audio>
                 </div>
@@ -108,8 +105,8 @@ if (isset($_GET['from']) && in_array($_GET['from'], ['dashboard', 'assets'])) {
 
         <?php if ($isOwner || $isAdmin): ?>
             <div class="asset-actions" style="display:inline;">
-                <a href="edit_asset.php?id=<?= $assetId ?>&from=<?= htmlspecialchars($returnTo) ?>" class="action-btn">Edit</a>
-                <form method="POST" action="delete_asset.php" onsubmit="return confirm('Are you sure you want to delete this asset?');" style="display:inline;">
+                <a href="/edit_asset?id=<?= $assetId ?>&from=<?= htmlspecialchars($returnTo) ?>" class="action-btn">Edit</a>
+                <form method="POST" action="/delete_asset" onsubmit="return confirm('Are you sure you want to delete this asset?');" style="display:inline;">
                     <input type="hidden" name="id" value="<?= $assetId ?>">
                     <input type="hidden" name="from" value="<?= htmlspecialchars($returnTo) ?>">
                     <button type="submit" class="action-btn danger">Delete</button>
