@@ -1,6 +1,11 @@
 <?php
-session_start();
-require_once('../classes/User.php');
+// Uruchamiamy sesję tylko jeśli jeszcze nie istnieje
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// KLUCZOWA ZMIANA: Użycie __DIR__ naprawia problem ze ścieżką
+require_once __DIR__ . '/../classes/User.php';
 
 $message = '';
 $messageType = '';
@@ -27,7 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $success = $userObj->register($username, $email, $password, $role);
             if ($success) {
-                header('Location: login.php?registered=1');
+                // Routing Slim
+                header('Location: /login?registered=1');
                 exit();
             } else {
                 $message = 'An error occurred during registration.';
@@ -46,22 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Register - AssetVault</title>
-    <link rel="stylesheet" href="../styles/auth.css">
+    <link rel="stylesheet" href="/styles/auth.css">
 </head>
 <body>
 
 <div class="auth-wrapper">
-    <!-- Left section (desktop only) -->
     <div class="auth-left">
-        <img src="../images/logo-white.png" alt="Logo" style="width: 80px; margin-bottom: 20px;">
+        <img src="/images/logo-white.png" alt="Logo" style="width: 80px; margin-bottom: 20px;">
         <h1>Welcome to AssetVault</h1>
         <p>Manage your digital assets securely and efficiently with our platform.</p>
     </div>
 
-    <!-- Right section (form) -->
     <div class="auth-right">
         <div class="logo-section">
-            <img src="../images/logo-black.png" alt="Logo">
+            <img src="/images/logo-black.png" alt="Logo">
             <h1>AssetVault</h1>
         </div>
         <div class="auth-container">
@@ -83,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <div class="auth-footer">
-                <p>Already have an account? <a href="login.php">Sign in</a></p>
+                <p>Already have an account? <a href="/login">Sign in</a></p>
             </div>
         </div>
     </div>
